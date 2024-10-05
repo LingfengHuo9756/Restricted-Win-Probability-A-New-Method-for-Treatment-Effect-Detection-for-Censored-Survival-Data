@@ -1,0 +1,44 @@
+---
+title: "Example for function surv.metrics"
+author: "Lingfeng"
+date: "2024-09-17"
+output: html_document
+---
+
+```{r}
+library(survival)
+library(KMsurv)
+library('kmdata')
+library(survHE)
+source('Wrapper Function that allows different distribution for treatment and control group(including rps).R')
+```  
+
+```{r}
+# define the treatment and control group data set
+Data_t=bc[bc$group=='Good',]
+Data_c=bc[bc$group=='Medium',]
+rownames(Data_c)=1:nrow(Data_c)
+```  
+
+```{r}
+iter=2000
+tau=8
+tau1=8
+delta=1.35
+alpha=1/2
+
+distr.t='rps'
+distr.c='weibullPH'
+
+hmc.t = fit.models(formula=Surv(recyrs,censrec)~1,data=Data_t,distr=distr.t,method="hmc",k=3,iter=iter)
+hmc.c = fit.models(formula=Surv(recyrs,censrec)~1,data=Data_c,distr=distr.c,method="hmc",iter=iter)
+
+m1=surv.metrics(hmc.t,hmc.c,distr.t,distr.c,tau,tau1,delta,alpha,iter,only_gof=0,knots=3)
+
+# rwp
+m1$rwp.mean
+mean(m1$rwp.vec)
+# rwp with delta
+m1$rwp.delta.mean
+mean(m1$rwp.delta.vec)
+```  
